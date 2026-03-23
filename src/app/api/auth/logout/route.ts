@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../[...nextauth]/authOptions";
 
-const API_BASE_URL = "https://dental-management-api-seven.vercel.app/api/auth";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_AUTH_URL || "https://dental-management-api-seven.vercel.app/api/auth";
 
 export async function GET(request: NextRequest) {
   try {

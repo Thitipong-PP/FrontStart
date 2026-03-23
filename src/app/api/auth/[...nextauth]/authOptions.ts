@@ -1,7 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-const API_BASE_URL = "https://dental-management-api-seven.vercel.app/api/auth";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_AUTH_URL || "https://dental-management-api-seven.vercel.app/api/auth";
 
 export const authOptions: NextAuthOptions = {
   providers: [

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE_URL = "https://dental-management-api-seven.vercel.app/api/auth";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_AUTH_URL || "https://dental-management-api-seven.vercel.app/api/auth";
 
 export async function POST(request: NextRequest) {
   try {
