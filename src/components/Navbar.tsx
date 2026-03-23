@@ -54,7 +54,7 @@ export default function Navbar({ variant = "user" }: NavbarProps) {
   const userInitial = user?.name?.charAt(0).toUpperCase() ?? "?";
   const userName = user?.name ?? "User";
   const userEmail = user?.email ?? "";
-  const homeRoute = "/dashboard";
+  const homeRoute = "/";
 
   return (
     <>
