@@ -61,7 +61,7 @@ export default function Navbar({ variant = "user" }: NavbarProps) {
     : "•";
   const userName = isMounted ? user?.name : "Loading...";
   const userEmail = isMounted ? user?.email : "";
-  const homeRoute = variant === "admin" ? "/admin" : "/dashboard";
+  const homeRoute = "/dashboard";
 
   return (
     <>
@@ -304,7 +304,7 @@ export default function Navbar({ variant = "user" }: NavbarProps) {
               <ListItemButton
                 sx={{ borderRadius: 2, mb: 0.5 }}
                 onClick={() => {
-                  router.push("/admin");
+                  router.push("/dashboard");
                   setDrawerOpen(false);
                 }}
               >
