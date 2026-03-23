@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import MuiButton from "@mui/material/Button";
 import Rating from "@mui/material/Rating";
@@ -30,7 +30,7 @@ import {
   selectAllBookings,
 } from "@/store/slices/bookingSlice";
 import { selectAllReviews } from "@/store/slices/reviewSlice";
-import { dentists } from "@/data/dentists";
+import { fetchDentists, type Dentist } from "@/data/dentists";
 import { toast } from "sonner";
 
 export default function MyBooking() {
@@ -47,9 +47,27 @@ export default function MyBooking() {
   const [editDate, setEditDate] = useState(booking?.date ?? "");
   const [editDentistId, setEditDentistId] = useState(booking?.dentistId ?? "");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [dentistsList, setDentistsList] = useState<Dentist[]>([]);
+  const [loadingDentists, setLoadingDentists] = useState(true);
 
+  useEffect(() => {
+    const loadDentists = async () => {
+      try {
+        const data = await fetchDentists();
+        setDentistsList(data);
+      } catch (error) {
+        console.error('Failed to load dentists:', error);
+        toast.error('Failed to load dentists');
+      } finally {
+        setLoadingDentists(false);
+      }
+    };
+    loadDentists();
+  }, []);
+
+  const safeDentists = Array.isArray(dentistsList) ? dentistsList : [];
   const dentist = booking
-    ? dentists.find((d) => d.id === booking.dentistId)
+    ? safeDentists.find((d) => d._id === booking.dentistId)
     : null;
 
   const getDentistReviewCount = (id: string) =>
@@ -177,10 +195,11 @@ export default function MyBooking() {
                   value={editDentistId}
                   onChange={(e) => setEditDentistId(e.target.value)}
                   label="Dentist"
+                  disabled={loadingDentists}
                   sx={{ borderRadius: "10px" }}
                 >
-                  {dentists.map((d) => (
-                    <MenuItem key={d.id} value={d.id}>
+                  {dentistsList.map((d) => (
+                    <MenuItem key={d._id} value={d._id}>
                       <div className="flex flex-col py-0.5">
                         <span style={{ fontWeight: 500 }}>{d.name}</span>
                         <span className="text-xs text-slate-400">
@@ -192,6 +211,8 @@ export default function MyBooking() {
                 </Select>
               </FormControl>
 
+              <div className="my-8" />
+
               <TextField
                 label="Appointment Date"
                 type="date"
@@ -201,6 +222,8 @@ export default function MyBooking() {
                 required
                 InputLabelProps={{ shrink: true }}
               />
+
+              <div className="my-10" />
 
               <div className="flex gap-3 pt-2">
                 <MuiButton
@@ -238,17 +261,6 @@ export default function MyBooking() {
             {dentist && (
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 <div className="flex gap-5 p-5">
-                  <div className="w-20 h-20 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
-                    <img
-                      src={dentist.image}
-                      alt={dentist.name}
-                      className="w-full h-full object-cover object-top"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(dentist.name)}&background=dbeafe&color=2563eb&size=80`;
-                      }}
-                    />
-                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs text-slate-400 mb-1">
                       Your Dentist
@@ -269,17 +281,17 @@ export default function MyBooking() {
                       </span>
                       <span className="flex items-center gap-1.5">
                         <Rating
-                          value={getDentistAvgRating(dentist.id)}
+                          value={getDentistAvgRating(dentist._id)}
                           precision={0.5}
                           readOnly
                           size="small"
                           sx={{ fontSize: "0.85rem" }}
                         />
-                        <span>({getDentistReviewCount(dentist.id)})</span>
+                        <span>({getDentistReviewCount(dentist._id)})</span>
                       </span>
                     </div>
                     <button
-                      onClick={() => router.push(`/dentist/${dentist.id}`)}
+                      onClick={() => router.push(`/dentist/${dentist._id}`)}
                       className="mt-2 flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 hover:underline transition-colors"
                     >
                       <MessageSquare className="w-3 h-3" />

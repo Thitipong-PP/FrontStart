@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import MuiButton from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
@@ -31,7 +31,7 @@ import {
   deleteReview,
   selectAllReviews,
 } from "@/store/slices/reviewSlice";
-import { dentists } from "@/data/dentists";
+import { Dentist, fetchDentist } from "@/data/dentists";
 import { toast } from "sonner";
 
 export default function DentistDetailPage({
@@ -47,11 +47,10 @@ export default function DentistDetailPage({
   const isAdmin = session?.user?.role === "admin";
   const dispatch = useAppDispatch();
 
-  const allReviews = useAppSelector(selectAllReviews);
-  const dentist = dentists.find(
-    (d: (typeof dentists)[0]) => d.id === dentistId,
-  );
+  const [dentist, setDentist] = useState<Dentist | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  const allReviews = useAppSelector(selectAllReviews);
   const dentistReviews = allReviews.filter(
     (r: any) => r.dentistId === dentistId,
   );
@@ -64,6 +63,25 @@ export default function DentistDetailPage({
         dentistReviews.length
       : 0;
   const canReview = isAuthenticated && !isAdmin && !userReview;
+
+  // Fetch dentist data
+  useEffect(() => {
+    const loadDentist = async () => {
+      try {
+        const data = await fetchDentist(dentistId);
+        setDentist(data);
+      } catch (error) {
+        console.error('Failed to load dentist:', error);
+        toast.error('Failed to load dentist information');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (dentistId) {
+      loadDentist();
+    }
+  }, [dentistId]);
 
   // New review form state
   const [newRating, setNewRating] = useState(5);
@@ -180,6 +198,17 @@ export default function DentistDetailPage({
     },
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-20">
+          <LinearProgress />
+          <div className="text-center mt-4 text-slate-500">Loading dentist information...</div>
+        </div>
+      </div>
+    );
+  }
+
   if (!dentist) {
     return (
       <div className="min-h-screen bg-slate-50">
@@ -238,16 +267,12 @@ export default function DentistDetailPage({
           }}
         >
           <div className="flex flex-col sm:flex-row">
-            <div className="sm:w-56 h-48 sm:h-auto flex-shrink-0 bg-slate-100 overflow-hidden">
-              <img
-                src={dentist.image}
-                alt={dentist.name}
-                className="w-full h-full object-cover object-top"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(dentist.name)}&background=dbeafe&color=2563eb&size=200`;
-                }}
-              />
+            <div className="sm:w-56 h-48 sm:h-auto flex-shrink-0 bg-slate-100 flex items-center justify-center">
+              <Avatar
+                sx={{ width: 80, height: 80, bgcolor: '#3b82f6' }}
+              >
+                {dentist.name.charAt(0).toUpperCase()}
+              </Avatar>
             </div>
             <div className="flex-1 p-6">
               <Chip
@@ -311,7 +336,7 @@ export default function DentistDetailPage({
                   onClick={() => router.push("/create-booking")}
                   sx={{ mt: 2.5, borderRadius: "8px", fontWeight: 600 }}
                 >
-                  Book with {dentist.name.split(" ")[1]}
+                  Book Appointment
                 </MuiButton>
               )}
             </div>

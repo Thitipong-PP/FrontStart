@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import MuiButton from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
@@ -16,7 +16,7 @@ import {
 import { useSession } from "next-auth/react";
 import { useAppSelector } from "@/store";
 import { selectAllReviews } from "@/store/slices/reviewSlice";
-import { dentists } from "@/data/dentists";
+import { fetchDentists, type Dentist } from "@/data/dentists";
 
 const expertiseColors: Record<
   string,
@@ -58,6 +58,22 @@ export default function DashboardPage() {
   const [selectedExpertise, setSelectedExpertise] = useState("All");
 
   const allReviews = useAppSelector(selectAllReviews);
+  const [dentistsList, setDentistsList] = useState<Dentist[]>([]);
+  const [loadingDentists, setLoadingDentists] = useState(true);
+
+  useEffect(() => {
+    const loadDentists = async () => {
+      try {
+        const data = await fetchDentists();
+        setDentistsList(data);
+      } catch (error) {
+        console.error('Failed to load dentists:', error);
+      } finally {
+        setLoadingDentists(false);
+      }
+    };
+    loadDentists();
+  }, []);
 
   const getAvgRating = (dentistId: string) => {
     const r = allReviews.filter((rv) => rv.dentistId === dentistId);
@@ -68,14 +84,16 @@ export default function DashboardPage() {
   const getReviewCount = (dentistId: string) =>
     allReviews.filter((rv) => rv.dentistId === dentistId).length;
 
+  const safeDentists = Array.isArray(dentistsList) ? dentistsList : [];
+
   const expertiseFilters = [
     "All",
     ...Array.from(
-      new Set(dentists.map((d) => d.areaOfExpertise.split(" & ")[0])),
+      new Set(safeDentists.map((d) => d.areaOfExpertise.split(" & ")[0])),
     ),
   ];
 
-  const filteredDentists = dentists.filter((d) => {
+  const filteredDentists = safeDentists.filter((d) => {
     const q = searchQuery.toLowerCase();
     const matchSearch =
       d.name.toLowerCase().includes(q) ||
@@ -182,41 +200,14 @@ export default function DashboardPage() {
                 text: "#2563eb",
                 border: "#bfdbfe",
               };
-              const avg = getAvgRating(dentist.id);
-              const count = getReviewCount(dentist.id);
+              const avg = getAvgRating(dentist._id);
+              const count = getReviewCount(dentist._id);
 
               return (
                 <div
-                  key={dentist.id}
+                  key={dentist._id}
                   className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group"
                 >
-                  {/* Photo */}
-                  <div className="relative h-52 overflow-hidden bg-slate-100">
-                    <img
-                      src={dentist.image}
-                      alt={dentist.name}
-                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(dentist.name)}&background=dbeafe&color=2563eb&size=200`;
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent" />
-                    <div className="absolute bottom-3 left-3 right-3">
-                      <span
-                        className="inline-flex items-center px-2.5 py-1 rounded-full text-xs border"
-                        style={{
-                          backgroundColor: colors.bg,
-                          color: colors.text,
-                          borderColor: colors.border,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {dentist.areaOfExpertise}
-                      </span>
-                    </div>
-                  </div>
-
                   {/* Info */}
                   <div className="p-5">
                     <h3
@@ -249,7 +240,7 @@ export default function DashboardPage() {
                         variant="outlined"
                         size="small"
                         startIcon={<MessageSquare size={14} />}
-                        onClick={() => router.push(`/dentist/${dentist.id}`)}
+                        onClick={() => router.push(`/dentist/${dentist._id}`)}
                         sx={{
                           flex: 1,
                           borderColor: "#e2e8f0",

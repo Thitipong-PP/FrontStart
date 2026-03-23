@@ -38,7 +38,7 @@ import { useSession } from "next-auth/react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { deleteBooking, selectAllBookings } from "@/store/slices/bookingSlice";
 import { deleteReview, selectAllReviews } from "@/store/slices/reviewSlice";
-import { dentists } from "@/data/dentists";
+import { fetchDentists, type Dentist } from "@/data/dentists";
 import { toast } from "sonner";
 
 type SortKey = "userName" | "date" | "dentistName";
@@ -91,13 +91,27 @@ export default function AdminPage() {
     null,
   );
   const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
+  const [dentistsList, setDentistsList] = useState<Dentist[]>([]);
 
   useEffect(() => {
     if (!isAdmin) router.push("/login");
   }, [isAdmin, router]);
 
+  useEffect(() => {
+    const loadDentists = async () => {
+      try {
+        const data = await fetchDentists();
+        setDentistsList(data);
+      } catch (error) {
+        console.error('Failed to load dentists:', error);
+      }
+    };
+    loadDentists();
+  }, []);
+
+  const safeDentists = Array.isArray(dentistsList) ? dentistsList : [];
   const getDentistName = (id: string) =>
-    dentists.find((d) => d.id === id)?.name ?? "Unknown";
+    safeDentists.find((d) => d._id === id)?.name ?? "Unknown";
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString("en-US", {
       year: "numeric",
@@ -346,8 +360,8 @@ export default function AdminPage() {
                   </TableHead>
                   <TableBody>
                     {filteredBookings.map((booking) => {
-                      const dentist = dentists.find(
-                        (d) => d.id === booking.dentistId,
+                      const dentist = dentistsList.find(
+                        (d) => d._id === booking.dentistId,
                       );
                       const isUpcoming = new Date(booking.date) >= new Date();
                       return (
@@ -383,13 +397,11 @@ export default function AdminPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              {dentist?.image && (
-                                <img
-                                  src={dentist.image}
-                                  alt={dentist.name}
-                                  className="w-7 h-7 rounded-full object-cover object-top"
-                                />
-                              )}
+                              <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+                                <span className="text-blue-600 text-xs font-bold">
+                                  {dentist?.name.split(" ").pop()?.charAt(0)}
+                                </span>
+                              </div>
                               <span className="text-slate-700 text-sm">
                                 {getDentistName(booking.dentistId)}
                               </span>
@@ -516,8 +528,8 @@ export default function AdminPage() {
             ) : (
               <div className="divide-y divide-slate-50">
                 {filteredReviews.map((review) => {
-                  const dentist = dentists.find(
-                    (d) => d.id === review.dentistId,
+                  const dentist = dentistsList.find(
+                    (d) => d._id === review.dentistId,
                   );
                   return (
                     <div
@@ -549,13 +561,11 @@ export default function AdminPage() {
                                 </span>
                                 <span className="text-slate-300">→</span>
                                 <div className="flex items-center gap-1.5">
-                                  {dentist?.image && (
-                                    <img
-                                      src={dentist.image}
-                                      alt={dentist.name}
-                                      className="w-5 h-5 rounded-full object-cover object-top"
-                                    />
-                                  )}
+                                  <div className="w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+                                    <span className="text-blue-600 text-xs font-bold">
+                                      {dentist?.name.split(" ").pop()?.charAt(0)}
+                                    </span>
+                                  </div>
                                   <span className="text-blue-600 text-sm">
                                     {getDentistName(review.dentistId)}
                                   </span>

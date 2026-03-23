@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { dentists } from '../../data/dentists';
+import { fetchDentist } from '../../data/dentists';
 
 export interface Booking {
   id: string;
@@ -43,11 +43,14 @@ export const createBooking = createAsyncThunk(
     if (state.bookings.items.some((b) => b.userId === payload.userId)) {
       return rejectWithValue('You already have an active booking');
     }
-    const dentist = dentists.find((d) => d.id === payload.dentistId);
+    const dentist = await fetchDentist(payload.dentistId);
+    if (!dentist) {
+      return rejectWithValue('Dentist not found');
+    }
     const booking: Booking = {
       id: Date.now().toString(),
       ...payload,
-      dentistName: dentist?.name || '',
+      dentistName: dentist.name,
       createdAt: new Date().toISOString(),
     };
     const updated = [...state.bookings.items, booking];
@@ -66,10 +69,13 @@ export const updateBooking = createAsyncThunk(
     const idx = state.bookings.items.findIndex((b) => b.id === payload.bookingId);
     if (idx === -1) return rejectWithValue('Booking not found');
 
-    const dentist = dentists.find((d) => d.id === payload.dentistId);
+    const dentist = await fetchDentist(payload.dentistId);
+    if (!dentist) {
+      return rejectWithValue('Dentist not found');
+    }
     const updated = state.bookings.items.map((b) =>
       b.id === payload.bookingId
-        ? { ...b, dentistId: payload.dentistId, dentistName: dentist?.name || '', date: payload.date }
+        ? { ...b, dentistId: payload.dentistId, dentistName: dentist.name, date: payload.date }
         : b
     );
     saveToStorage(updated);
