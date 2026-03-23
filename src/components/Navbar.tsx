@@ -156,44 +156,48 @@ export default function Navbar({ variant = "user" }: NavbarProps) {
               />
             )}
 
-            <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1.5 }} />
+            {userEmail != "" && (
+              <>
+                <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1.5 }} />
 
-            {/* Avatar + Name */}
-            <div className="flex items-center gap-2">
-              <Avatar
-                sx={{
-                  width: 32,
-                  height: 32,
-                  bgcolor: "#dbeafe",
-                  color: "#2563eb",
-                  fontSize: "0.8rem",
-                  fontWeight: 700,
-                }}
-              >
-                {userInitial}
-              </Avatar>
-              <span
-                className="text-sm text-slate-700 hidden lg:block"
-                style={{ fontWeight: 500 }}
-              >
-                {userName}
-              </span>
-            </div>
+                {/* Avatar + Name */}
+                <div className="flex items-center gap-2">
+                  <Avatar
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      bgcolor: "#dbeafe",
+                      color: "#2563eb",
+                      fontSize: "0.8rem",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {userInitial}
+                  </Avatar>
+                  <span
+                    className="text-sm text-slate-700 hidden lg:block"
+                    style={{ fontWeight: 500 }}
+                  >
+                    {userName}
+                  </span>
+                </div>
 
-            <MuiButton
-              startIcon={<LogOut size={15} />}
-              onClick={handleLogout}
-              color="inherit"
-              sx={{
-                color: "#94a3b8",
-                "&:hover": { color: "#dc2626", bgcolor: "#fff1f2" },
-                borderRadius: 2,
-                px: 1.5,
-                ml: 0.5,
-              }}
-            >
-              Logout
-            </MuiButton>
+                <MuiButton
+                  startIcon={<LogOut size={15} />}
+                  onClick={handleLogout}
+                  color="inherit"
+                  sx={{
+                    color: "#94a3b8",
+                    "&:hover": { color: "#dc2626", bgcolor: "#fff1f2" },
+                    borderRadius: 2,
+                    px: 1.5,
+                    ml: 0.5,
+                  }}
+                >
+                  Logout
+                </MuiButton>
+              </>              
+            )}
           </div>
 
           {/* Mobile Hamburger */}
