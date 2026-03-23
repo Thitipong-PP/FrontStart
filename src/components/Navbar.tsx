@@ -24,7 +24,7 @@ import {
   X,
   Shield,
 } from "lucide-react";
-import { useAuthUser, useSignOut } from "../hooks/useSession";
+import { useAuthUser, useSignOut } from "@/store/hooks";
 
 interface NavbarProps {
   variant?: "user" | "admin";

@@ -22,7 +22,7 @@ import {
   Trash2,
   MessageSquare,
 } from "lucide-react";
-import { useAuthUser } from "@/hooks/useSession";
+import { useAuthUser } from "@/store/hooks";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   updateBooking,

@@ -13,7 +13,7 @@ import {
   ChevronRight,
   MessageSquare,
 } from "lucide-react";
-import { useAuthUser } from "@/hooks/useSession";
+import { useAuthUser } from "@/store/hooks";
 import { useAppSelector } from "@/store";
 import { selectAllReviews } from "@/store/slices/reviewSlice";
 import { dentists } from "@/data/dentists";

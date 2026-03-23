@@ -8,7 +8,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import Divider from "@mui/material/Divider";
 import { Eye, EyeOff, ArrowLeft, Shield, Loader2 } from "lucide-react";
-import { useSignIn } from "@/hooks/useSession";
+import { useSignIn } from "@/store/hooks";
 import { toast } from "sonner";
 
 export default function LoginPage() {

@@ -18,7 +18,7 @@ import {
   Loader2,
   UserCheck,
 } from "lucide-react";
-import { useAuthUser } from "@/hooks/useSession";
+import { useAuthUser } from "@/store/hooks";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { createBooking, selectAllBookings } from "@/store/slices/bookingSlice";
 import { selectAllReviews } from "@/store/slices/reviewSlice";

@@ -11,16 +11,6 @@ import { loadReviews } from "@/store/slices/reviewSlice";
 import { loadBookings } from "@/store/slices/bookingSlice";
 import muiTheme from "@/theme/muiTheme";
 
-// Suppress Figma-inspector data-fg* prop warnings that are injected by the
-// Figma Make preview environment and cannot be removed from our code.
-if (typeof window !== "undefined") {
-  const _origConsoleError = console.error.bind(console);
-  console.error = (...args: unknown[]) => {
-    if (args.some((a) => typeof a === "string" && /data-fg/i.test(a))) return;
-    _origConsoleError(...args);
-  };
-}
-
 // Bootstrap component — initialises Redux state from localStorage on mount
 function AppBootstrap({ children }: { children: ReactNode }) {
   useEffect(() => {

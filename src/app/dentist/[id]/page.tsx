@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import MuiButton from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
@@ -23,7 +23,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useAuthUser } from "@/hooks/useSession";
+import { useAuthUser } from "@/store/hooks";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   addReview,
@@ -37,9 +37,9 @@ import { toast } from "sonner";
 export default function DentistDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const dentistId = params.id;
+  const { id: dentistId } = use(params);
   const router = useRouter();
   const { user, isAuthenticated, isAdmin } = useAuthUser();
   const dispatch = useAppDispatch();
