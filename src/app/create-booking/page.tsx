@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import TextField from "@mui/material/TextField";
 import MuiButton from "@mui/material/Button";
@@ -22,7 +22,7 @@ import { useSession } from "next-auth/react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { createBooking, selectAllBookings } from "@/store/slices/bookingSlice";
 import { selectAllReviews } from "@/store/slices/reviewSlice";
-import { dentists } from "@/data/dentists";
+import { fetchDentists, type Dentist } from "@/data/dentists";
 import { toast } from "sonner";
 
 export default function CreateBookingPage() {
@@ -34,11 +34,30 @@ export default function CreateBookingPage() {
   const [date, setDate] = useState("");
   const [selectedDentistId, setSelectedDentistId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dentistsList, setDentistsList] = useState<Dentist[]>([]);
+  const [loadingDentists, setLoadingDentists] = useState(true);
 
   const allBookings = useAppSelector(selectAllBookings);
   const allReviews = useAppSelector(selectAllReviews);
   const hasExistingBooking = allBookings.some((b) => b.userId === user?.id);
-  const selectedDentist = dentists.find((d) => d.id === selectedDentistId);
+
+  useEffect(() => {
+    const loadDentists = async () => {
+      try {
+        const data = await fetchDentists();
+        setDentistsList(data);
+      } catch (error) {
+        console.error('Failed to load dentists:', error);
+        toast.error('Failed to load dentists');
+      } finally {
+        setLoadingDentists(false);
+      }
+    };
+    loadDentists();
+  }, []);
+
+  const safeDentists = Array.isArray(dentistsList) ? dentistsList : [];
+  const selectedDentist = safeDentists.find((d) => d._id === selectedDentistId);
 
   const getAvgRating = (dentistId: string) => {
     const r = allReviews.filter((rv) => rv.dentistId === dentistId);
@@ -191,23 +210,19 @@ export default function CreateBookingPage() {
                         onChange={(e) => setSelectedDentistId(e.target.value)}
                         label="Choose a Dentist"
                         displayEmpty
+                        disabled={loadingDentists}
                         sx={{ borderRadius: "10px" }}
                       >
                         <MenuItem value="" disabled>
                           <span className="text-slate-400">
-                            Select a dentist...
+                            {loadingDentists ? "Loading dentists..." : "Select a dentist..."}
                           </span>
                         </MenuItem>
-                        {dentists.map((d) => (
-                          <MenuItem key={d.id} value={d.id}>
+                        {dentistsList.map((d) => (
+                          <MenuItem key={d._id} value={d._id}>
                             <div className="flex items-center gap-3 py-1">
-                              <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-                                <span
-                                  className="text-blue-600 text-xs"
-                                  style={{ fontWeight: 700 }}
-                                >
-                                  {d.name.split(" ").pop()?.charAt(0)}
-                                </span>
+                              <div className="w-8 h-8 rounded-full text-blue-600 bg-blue-50 flex items-center justify-center flex-shrink-0">
+                                {d.name.split(" ").pop()?.charAt(0)}
                               </div>
                               <div>
                                 <div style={{ fontWeight: 500 }}>{d.name}</div>
@@ -293,18 +308,6 @@ export default function CreateBookingPage() {
             {/* Dentist preview card */}
             {selectedDentist ? (
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                <div className="h-48 overflow-hidden bg-slate-100 relative">
-                  <img
-                    src={selectedDentist.image}
-                    alt={selectedDentist.name}
-                    className="w-full h-full object-cover object-top"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedDentist.name)}&background=dbeafe&color=2563eb&size=200`;
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                </div>
                 <div className="p-5 space-y-3">
                   <div>
                     <h3
@@ -328,19 +331,19 @@ export default function CreateBookingPage() {
                     <Award className="w-4 h-4 text-amber-500 flex-shrink-0" />
                     {selectedDentist.yearsOfExperience} years of experience
                   </div>
-                  {getReviewCount(selectedDentist.id) > 0 ? (
+                  {getReviewCount(selectedDentist._id) > 0 ? (
                     <div className="flex items-center gap-2">
                       <Rating
-                        value={getAvgRating(selectedDentist.id)}
+                        value={getAvgRating(selectedDentist._id)}
                         precision={0.1}
                         readOnly
                         size="small"
                         sx={{ color: "#f59e0b" }}
                       />
                       <span className="text-sm text-slate-500">
-                        {getAvgRating(selectedDentist.id).toFixed(1)}
+                        {getAvgRating(selectedDentist._id).toFixed(1)}
                         <span className="text-slate-400 text-xs ml-1">
-                          ({getReviewCount(selectedDentist.id)} reviews)
+                          ({getReviewCount(selectedDentist._id)} reviews)
                         </span>
                       </span>
                     </div>
