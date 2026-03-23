@@ -88,6 +88,7 @@ export default function RegisterPage() {
       const result = await signIn("credentials", {
         email,
         password,
+        userData: JSON.stringify(newUser), // Pass new user data
         redirect: false,
       });
 

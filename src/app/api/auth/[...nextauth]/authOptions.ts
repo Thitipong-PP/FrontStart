@@ -9,22 +9,37 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email", placeholder: "your@email.com" },
         password: { label: "Password", type: "password" },
+        userData: { label: "User Data", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password required");
         }
 
-        // Use shared validation logic
-        // Note: This is server-side, so regular users from localStorage won't be found
-        // Client-side sign-in should validate against localStorage first
-        const user = validateCredentials(
+        // First try admin validation
+        const adminUser = validateCredentials(
           credentials.email,
           credentials.password,
         );
 
-        if (user) {
-          return user;
+        if (adminUser) {
+          return adminUser;
+        }
+
+        // For regular users from localStorage, use passed userData
+        if (credentials.userData) {
+          try {
+            const user = JSON.parse(credentials.userData);
+            // Verify email and password match to prevent tampering
+            if (
+              user.email === credentials.email &&
+              user.password === credentials.password
+            ) {
+              return user;
+            }
+          } catch (error) {
+            console.error("Error parsing userData:", error);
+          }
         }
 
         return null;

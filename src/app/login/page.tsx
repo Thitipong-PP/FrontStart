@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { validateUserFromStorage } from "@/app/api/auth/validateCredentials";
 import TextField from "@mui/material/TextField";
 import MuiButton from "@mui/material/Button";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -27,9 +28,20 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
+      // First validate against localStorage (client-side validation)
+      const user = validateUserFromStorage(email, password);
+
+      if (!user) {
+        toast.error("Invalid email or password");
+        setIsLoading(false);
+        return;
+      }
+
+      // If valid, sign in with NextAuth (pass user data for callback)
       const result = await signIn("credentials", {
         email,
         password,
+        userData: JSON.stringify(user), // Pass validated user data
         redirect: false,
       });
 
