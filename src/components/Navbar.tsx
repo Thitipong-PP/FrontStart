@@ -54,6 +54,7 @@ export default function Navbar({ variant = "user" }: NavbarProps) {
   const userInitial = user?.name?.charAt(0).toUpperCase() ?? "?";
   const userName = user?.name ?? "User";
   const userEmail = user?.email ?? "";
+  const userRole = user?.role ?? "user";
   const homeRoute = "/";
 
   return (
@@ -140,6 +141,21 @@ export default function Navbar({ variant = "user" }: NavbarProps) {
                 >
                   My Booking
                 </MuiButton>
+                {userRole === "admin" && (
+                  <MuiButton
+                    startIcon={<LayoutDashboard size={16} />}
+                    onClick={() => router.push("/admin")}
+                    color="inherit"
+                    sx={{
+                      color: "#475569",
+                      "&:hover": { color: "#2563eb", bgcolor: "#eff6ff" },
+                      borderRadius: 2,
+                      px: 1.5,
+                    }}
+                  >
+                    Admin
+                  </MuiButton>
+                )}
               </>
             )}
             {variant === "admin" && (
