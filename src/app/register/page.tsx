@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { useAuthUser } from "@/lib/useAuth";
 import TextField from "@mui/material/TextField";
 import MuiButton from "@mui/material/Button";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -28,6 +29,14 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { isAuthenticated, status } = useAuthUser();
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (status === "authenticated" && isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, status, router]);
 
   const passwordStrength =
     password.length === 0
