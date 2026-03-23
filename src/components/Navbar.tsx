@@ -128,19 +128,21 @@ export default function Navbar({ variant = "user" }: NavbarProps) {
                 >
                   Dashboard
                 </MuiButton>
-                <MuiButton
-                  startIcon={<Calendar size={16} />}
-                  onClick={() => router.push("/my-booking")}
-                  color="inherit"
-                  sx={{
-                    color: "#475569",
-                    "&:hover": { color: "#2563eb", bgcolor: "#eff6ff" },
-                    borderRadius: 2,
-                    px: 1.5,
-                  }}
-                >
-                  My Booking
-                </MuiButton>
+                {userRole === "user" && (
+                  <MuiButton
+                    startIcon={<Calendar size={16} />}
+                    onClick={() => router.push("/my-booking")}
+                    color="inherit"
+                    sx={{
+                      color: "#475569",
+                      "&:hover": { color: "#2563eb", bgcolor: "#eff6ff" },
+                      borderRadius: 2,
+                      px: 1.5,
+                    }}
+                  >
+                    My Booking
+                  </MuiButton>
+                )}
                 {userRole === "admin" && (
                   <MuiButton
                     startIcon={<LayoutDashboard size={16} />}
@@ -174,7 +176,11 @@ export default function Navbar({ variant = "user" }: NavbarProps) {
 
             {userEmail != "" && (
               <>
-                <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1.5 }} />
+                <Divider
+                  orientation="vertical"
+                  flexItem
+                  sx={{ mx: 1, my: 1.5 }}
+                />
 
                 {/* Avatar + Name */}
                 <div className="flex items-center gap-2">
@@ -212,7 +218,7 @@ export default function Navbar({ variant = "user" }: NavbarProps) {
                 >
                   Logout
                 </MuiButton>
-              </>              
+              </>
             )}
           </div>
 
