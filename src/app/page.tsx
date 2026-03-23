@@ -66,26 +66,6 @@ const features = [
   },
 ];
 
-const testimonials = [
-  {
-    name: "Somchai K.",
-    role: "Patient",
-    text: "Booking was so easy! I found the right dentist for my needs in minutes.",
-    rating: 5,
-  },
-  {
-    name: "Nattaporn P.",
-    role: "Patient",
-    text: "The system is clean and simple. I love how I can manage my appointment from anywhere.",
-    rating: 5,
-  },
-  {
-    name: "Wiraporn T.",
-    role: "Patient",
-    text: "Great service! Dr. Chen was amazing and the booking process was seamless.",
-    rating: 5,
-  },
-];
 
 export default function HomePage() {
   const router = useRouter();
@@ -333,61 +313,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <div
-              className="inline-block text-blue-600 text-sm mb-3 px-3 py-1 bg-blue-50 rounded-full border border-blue-100"
-              style={{ fontWeight: 600 }}
-            >
-              Testimonials
-            </div>
-            <h2
-              className="text-slate-900 mb-4"
-              style={{ fontSize: "2rem", fontWeight: 700 }}
-            >
-              What Our Patients Say
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((t) => (
-              <div
-                key={t.name}
-                className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm"
-              >
-                <Rating
-                  value={t.rating}
-                  readOnly
-                  size="small"
-                  sx={{ mb: 1.5 }}
-                />
-                <p className="text-slate-600 text-sm leading-relaxed mb-5">
-                  "{t.text}"
-                </p>
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-sm"
-                    style={{ fontWeight: 600 }}
-                  >
-                    {t.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div
-                      className="text-slate-800 text-sm"
-                      style={{ fontWeight: 600 }}
-                    >
-                      {t.name}
-                    </div>
-                    <div className="text-slate-400 text-xs">{t.role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-20 bg-blue-600">
