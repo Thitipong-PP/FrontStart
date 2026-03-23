@@ -1,9 +1,5 @@
-import Banner from "@/components/Banner";
+import Home from "@/app/pages/Home";
 
-export default function Home() {
-  return (
-    <main>
-      <Banner />
-    </main>
-  );
+export default function HomePage() {
+  return <Home />;
 }
