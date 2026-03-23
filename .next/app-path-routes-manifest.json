@@ -1,0 +1,9 @@
+{
+  "/api/auth/[...nextauth]/route": "/api/auth/[...nextauth]",
+  "/favicon.ico/route": "/favicon.ico",
+  "/_not-found/page": "/_not-found",
+  "/(venueinfo)/venue/page": "/venue",
+  "/booking/page": "/booking",
+  "/page": "/",
+  "/(venueinfo)/venue/[vid]/page": "/venue/[vid]"
+}
