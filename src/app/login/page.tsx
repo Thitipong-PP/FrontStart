@@ -1,9 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { validateUserFromStorage } from "@/app/api/auth/validateCredentials";
+import { useAuthUser } from "@/lib/useAuth";
 import TextField from "@mui/material/TextField";
 import MuiButton from "@mui/material/Button";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -18,6 +19,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { isAuthenticated, status } = useAuthUser();
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (status === "authenticated" && isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
