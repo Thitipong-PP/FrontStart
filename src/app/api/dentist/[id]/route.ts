@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_AUTH_URL || "https://dental-management-api-seven.vercel.app/api/auth";
-const DENTIST_API_URL = API_BASE_URL.replace('/auth', '/dentist');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://dental-management-api-seven.vercel.app/api";
+const DENTIST_API_URL = process.env.NEXT_PUBLIC_API_DENTISTS_URL || API_BASE_URL + "/dentist";
 
 export async function GET(
   request: NextRequest,
