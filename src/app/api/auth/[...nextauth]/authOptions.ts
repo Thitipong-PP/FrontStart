@@ -1,6 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { validateCredentials } from "../validateCredentials";
+
+const API_BASE_URL = "https://dental-management-api-seven.vercel.app/api/auth";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -9,40 +10,52 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email", placeholder: "your@email.com" },
         password: { label: "Password", type: "password" },
-        userData: { label: "User Data", type: "text" },
+        accessToken: { label: "Access Token", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password required");
         }
 
-        // First try admin validation
-        const adminUser = validateCredentials(
-          credentials.email,
-          credentials.password,
-        );
+        try {
+          // Call backend login API
+          const response = await fetch(`${API_BASE_URL}/login`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            }),
+          });
 
-        if (adminUser) {
-          return adminUser;
-        }
+          const data = await response.json();
 
-        // For regular users from localStorage, use passed userData
-        if (credentials.userData) {
-          try {
-            const user = JSON.parse(credentials.userData);
-            // Verify email and password match to prevent tampering
-            if (
-              user.email === credentials.email &&
-              user.password === credentials.password
-            ) {
-              return user;
-            }
-          } catch (error) {
-            console.error("Error parsing userData:", error);
+          if (!response.ok) {
+            throw new Error(data.message || "Login failed");
           }
-        }
 
-        return null;
+          // Handle backend response format: {success: true, data: {...}, token: "..."}
+          if (!data.success || !data.data) {
+            throw new Error(data.message || "Login failed");
+          }
+
+          const userData = data.data;
+
+          // Return user data with token
+          return {
+            id: userData._id, // Backend uses _id instead of id
+            email: userData.email,
+            name: userData.name,
+            telephone: userData.telephone,
+            role: userData.role || "user",
+            accessToken: data.token,
+          };
+        } catch (error) {
+          console.error("Auth error:", error);
+          throw new Error("Authentication failed");
+        }
       },
     }),
   ],
@@ -54,6 +67,7 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.role = user.role;
         token.telephone = user.telephone;
+        token.accessToken = user.accessToken;
       }
       return token;
     },
@@ -64,6 +78,7 @@ export const authOptions: NextAuthOptions = {
         session.user.name = token.name;
         session.user.role = token.role as "user" | "admin";
         session.user.telephone = token.telephone;
+        session.accessToken = token.accessToken;
       }
       return session;
     },

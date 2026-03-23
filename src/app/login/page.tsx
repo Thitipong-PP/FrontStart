@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { validateUserFromStorage } from "@/app/api/auth/validateCredentials";
 import { useAuthUser } from "@/lib/useAuth";
 import TextField from "@mui/material/TextField";
 import MuiButton from "@mui/material/Button";
@@ -37,25 +36,33 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      // First validate against localStorage (client-side validation)
-      const user = validateUserFromStorage(email, password);
+      // Call backend login API
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      if (!user) {
-        toast.error("Invalid email or password");
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || "Login failed");
         setIsLoading(false);
         return;
       }
 
-      // If valid, sign in with NextAuth (pass user data for callback)
+      // Sign in with NextAuth using the token
       const result = await signIn("credentials", {
         email,
         password,
-        userData: JSON.stringify(user), // Pass validated user data
+        accessToken: data.token,
         redirect: false,
       });
 
       if (result?.error) {
-        toast.error("Invalid email or password");
+        toast.error("Authentication failed");
       } else if (result?.ok) {
         toast.success("Welcome back!");
         router.push("/dashboard");

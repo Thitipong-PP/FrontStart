@@ -73,31 +73,28 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     try {
-      // Store user in localStorage (client-side)
-      const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
-      if (existingUsers.some((u: any) => u.email === email)) {
-        toast.error("Email already registered");
+      // Call backend register API
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password, telephone }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || "Registration failed");
         setIsLoading(false);
         return;
       }
-
-      const newUser = {
-        id: Date.now().toString(),
-        name,
-        telephone,
-        email,
-        password, // WARNING: Never store passwords in real apps!
-        role: "user" as const,
-      };
-
-      existingUsers.push(newUser);
-      localStorage.setItem("users", JSON.stringify(existingUsers));
 
       // Auto sign in after registration
       const result = await signIn("credentials", {
         email,
         password,
-        userData: JSON.stringify(newUser), // Pass new user data
+        accessToken: data.token,
         redirect: false,
       });
 

@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthUser } from "@/lib/useAuth";
 import MuiButton from "@mui/material/Button";
 import Rating from "@mui/material/Rating";
 import {
@@ -87,6 +89,14 @@ const testimonials = [
 
 export default function HomePage() {
   const router = useRouter();
+  const { isAuthenticated, status } = useAuthUser();
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (status === "authenticated" && isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, status, router]);
 
   return (
     <div className="min-h-screen bg-white">
