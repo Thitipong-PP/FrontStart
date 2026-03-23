@@ -13,7 +13,7 @@ import {
   ChevronRight,
   MessageSquare,
 } from "lucide-react";
-import { useAuthUser } from "@/store/hooks";
+import { useSession } from "next-auth/react";
 import { useAppSelector } from "@/store";
 import { selectAllReviews } from "@/store/slices/reviewSlice";
 import { dentists } from "@/data/dentists";
@@ -51,7 +51,8 @@ const expertiseColors: Record<
 };
 
 export default function DashboardPage() {
-  const { user } = useAuthUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedExpertise, setSelectedExpertise] = useState("All");

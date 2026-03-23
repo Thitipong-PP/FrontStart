@@ -22,7 +22,7 @@ import {
   Trash2,
   MessageSquare,
 } from "lucide-react";
-import { useAuthUser } from "@/store/hooks";
+import { useSession } from "next-auth/react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   updateBooking,
@@ -34,7 +34,8 @@ import { dentists } from "@/data/dentists";
 import { toast } from "sonner";
 
 export default function MyBooking() {
-  const { user } = useAuthUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const router = useRouter();
   const dispatch = useAppDispatch();
 

@@ -23,7 +23,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useAuthUser } from "@/store/hooks";
+import { useSession } from "next-auth/react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   addReview,
@@ -41,7 +41,10 @@ export default function DentistDetailPage({
 }) {
   const { id: dentistId } = use(params);
   const router = useRouter();
-  const { user, isAuthenticated, isAdmin } = useAuthUser();
+  const { data: session } = useSession();
+  const user = session?.user;
+  const isAuthenticated = !!session;
+  const isAdmin = session?.user?.role === "admin";
   const dispatch = useAppDispatch();
 
   const allReviews = useAppSelector(selectAllReviews);

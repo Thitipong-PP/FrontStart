@@ -1,88 +1,72 @@
 import type { NextAuthOptions } from "next-auth";
-import type { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
-
-declare module "next-auth" {
-  interface User {
-    _id?: string;
-    role?: string;
-    token?: string;
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    _id?: string;
-    role?: string;
-    token?: string;
-  }
-}
+import { validateCredentials } from "../validateCredentials";
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "Email", type: "email", placeholder: "your@email.com" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          throw new Error("Email and password required");
         }
 
-        try {
-          // TODO: Replace with your actual backend authentication endpoint
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/auth/login`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                email: credentials.email,
-                password: credentials.password,
-              }),
-            },
-          );
+        // Use shared validation logic
+        // Note: This is server-side, so regular users from localStorage won't be found
+        // Client-side sign-in should validate against localStorage first
+        const user = validateCredentials(
+          credentials.email,
+          credentials.password,
+        );
 
-          const user = await response.json();
-
-          if (response.ok && user) {
-            return user;
-          }
-          return null;
-        } catch (error) {
-          console.error("Auth error:", error);
-          return null;
+        if (user) {
+          return user;
         }
+
+        return null;
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token._id = user._id;
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
         token.role = user.role;
-        token.token = user.token;
+        token.telephone = user.telephone;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user._id = token._id as string;
-        session.user.role = token.role as string;
-        session.user.token = token.token as string;
+        session.user.id = token.id;
+        session.user.email = token.email;
+        session.user.name = token.name;
+        session.user.role = token.role as "user" | "admin";
+        session.user.telephone = token.telephone;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
   },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  secret:
+    process.env.NEXTAUTH_SECRET ||
+    "dentist-booking-secret-dev-key-change-in-production",
 };

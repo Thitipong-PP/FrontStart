@@ -24,7 +24,7 @@ import {
   X,
   Shield,
 } from "lucide-react";
-import { useAuthUser, useSignOut } from "@/store/hooks";
+import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
 
 interface NavbarProps {
   variant?: "user" | "admin";
@@ -41,26 +41,19 @@ const LogoIcon = () => (
 );
 
 export default function Navbar({ variant = "user" }: NavbarProps) {
-  const { user } = useAuthUser();
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const signOut = useSignOut();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const handleLogout = () => {
-    signOut();
+  const handleLogout = async () => {
+    await nextAuthSignOut({ redirect: false });
     router.push("/login");
   };
 
-  const userInitial = isMounted
-    ? (user?.name?.charAt(0).toUpperCase() ?? "?")
-    : "•";
-  const userName = isMounted ? user?.name : "Loading...";
-  const userEmail = isMounted ? user?.email : "";
+  const user = session?.user;
+  const userInitial = user?.name?.charAt(0).toUpperCase() ?? "?";
+  const userName = user?.name ?? "User";
+  const userEmail = user?.email ?? "";
   const homeRoute = "/dashboard";
 
   return (

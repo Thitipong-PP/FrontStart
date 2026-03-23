@@ -2,14 +2,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import TextField from "@mui/material/TextField";
 import MuiButton from "@mui/material/Button";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import LinearProgress from "@mui/material/LinearProgress";
 import { Eye, EyeOff, ArrowLeft, Check, Loader2 } from "lucide-react";
-import { useAppDispatch } from "@/store";
-import { registerUser } from "@/store/slices/authSlice";
 import { toast } from "sonner";
 
 const strengthMeta = [
@@ -28,7 +27,6 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const dispatch = useAppDispatch();
   const router = useRouter();
 
   const passwordStrength =
@@ -65,16 +63,45 @@ export default function RegisterPage() {
     }
 
     setIsLoading(true);
-    const result = await dispatch(
-      registerUser({ name, telephone, email, password }),
-    );
-    setIsLoading(false);
+    try {
+      // Store user in localStorage (client-side)
+      const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
+      if (existingUsers.some((u: any) => u.email === email)) {
+        toast.error("Email already registered");
+        setIsLoading(false);
+        return;
+      }
 
-    if (registerUser.fulfilled.match(result)) {
-      toast.success("Account created! Please sign in.");
-      router.push("/login");
-    } else {
-      toast.error((result.payload as string) || "Registration failed");
+      const newUser = {
+        id: Date.now().toString(),
+        name,
+        telephone,
+        email,
+        password, // WARNING: Never store passwords in real apps!
+        role: "user" as const,
+      };
+
+      existingUsers.push(newUser);
+      localStorage.setItem("users", JSON.stringify(existingUsers));
+
+      // Auto sign in after registration
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.ok) {
+        toast.success("Account created! Welcome!");
+        router.push("/dashboard");
+      } else {
+        toast.error("Account created but sign in failed. Please try again.");
+        router.push("/login");
+      }
+    } catch (error) {
+      toast.error("Registration failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -90,7 +117,7 @@ export default function RegisterPage() {
         <div
           className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1762625570087-6d98fca29531?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800')`,
+            backgroundImage: `url('/img/homepage_bg.jpg')`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}

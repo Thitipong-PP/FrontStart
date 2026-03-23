@@ -137,7 +137,7 @@ export default function HomePage() {
         <div
           className="absolute inset-0 opacity-20"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1762625570087-6d98fca29531?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080')`,
+            backgroundImage: `url('/img/homepage_bg.jpg')`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}

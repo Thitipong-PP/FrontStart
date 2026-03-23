@@ -1,11 +1,14 @@
 # Dependencies
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-.pnpm-debug.log*
+/.pnp
+.pnp.js
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Testing
+/coverage
+/.nyc_output
 
 # Next.js
 /.next/
@@ -14,28 +17,31 @@ lerna-debug.log*
 build/
 dist/
 
-# Testing
-/coverage
-/.nyc_output
-
 # Production
 /build
 
 # Misc
 .DS_Store
 *.pem
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+Thumbs.db
 
 # Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-debug.log*
 
-# IDE
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+
+# IDE & Editor
 .vscode/
 .idea/
 *.swp
@@ -46,13 +52,13 @@ yarn-error.log*
 *.c9/
 *.iml
 *.sublime-workspace
+.c9/
+*.sublime-project
 
-# OS
-Thumbs.db
+# OS specific
 .DS_Store
-
-# Local env files that may contain sensitive info
-.local
+Thumbs.db
+**/Thumbs.db
 
 # Vercel
 .vercel
@@ -60,14 +66,20 @@ Thumbs.db
 # Turbo
 .turbo
 
-# dotenv environment variable files
-.env*
-!.env.example
-
 # TypeScript
 *.tsbuildinfo
+next-env.d.ts
 
-# SvelteKit build / generated files
-.svelte-kit/
+# Optional npm cache directory
+.npm
 
-# End of https://www.toptal.com/developers/gitignore/templates/nextjs
+# Optional eslint cache
+.eslintcache
+
+# Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+

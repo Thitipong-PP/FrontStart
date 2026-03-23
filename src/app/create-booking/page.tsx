@@ -18,7 +18,7 @@ import {
   Loader2,
   UserCheck,
 } from "lucide-react";
-import { useAuthUser } from "@/store/hooks";
+import { useSession } from "next-auth/react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { createBooking, selectAllBookings } from "@/store/slices/bookingSlice";
 import { selectAllReviews } from "@/store/slices/reviewSlice";
@@ -26,7 +26,8 @@ import { dentists } from "@/data/dentists";
 import { toast } from "sonner";
 
 export default function CreateBookingPage() {
-  const { user } = useAuthUser();
+  const { data: session } = useSession();
+  const user = session?.user;
   const router = useRouter();
   const dispatch = useAppDispatch();
 

@@ -34,7 +34,7 @@ import {
   Star,
   MessageSquare,
 } from "lucide-react";
-import { useAuthUser } from "@/store/hooks";
+import { useSession } from "next-auth/react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { deleteBooking, selectAllBookings } from "@/store/slices/bookingSlice";
 import { deleteReview, selectAllReviews } from "@/store/slices/reviewSlice";
@@ -72,7 +72,8 @@ function StatCard({
 }
 
 export default function AdminPage() {
-  const { isAdmin } = useAuthUser();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
   const router = useRouter();
   const dispatch = useAppDispatch();
 

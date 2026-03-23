@@ -2,13 +2,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import TextField from "@mui/material/TextField";
 import MuiButton from "@mui/material/Button";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import Divider from "@mui/material/Divider";
 import { Eye, EyeOff, ArrowLeft, Shield, Loader2 } from "lucide-react";
-import { useSignIn } from "@/store/hooks";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -16,7 +16,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const signIn = useSignIn();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,11 +27,20 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      const user = (await signIn({ email, password })) as any;
-      toast.success("Welcome back!");
-      router.push("/dashboard");
-    } catch {
-      toast.error("Invalid email or password");
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        toast.error("Invalid email or password");
+      } else if (result?.ok) {
+        toast.success("Welcome back!");
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      toast.error("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -45,7 +53,7 @@ export default function LoginPage() {
         <div
           className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1762625570087-6d98fca29531?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=800')`,
+            backgroundImage: `url('/img/homepage_bg.jpg')`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
