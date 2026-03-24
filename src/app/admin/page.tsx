@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { deleteBooking, selectAllBookings } from "@/store/slices/bookingSlice";
+import { deleteBooking, loadBookings, selectAllBookings } from "@/store/slices/bookingSlice";
 import { deleteReview, selectAllReviews } from "@/store/slices/reviewSlice";
 import { fetchDentists, type Dentist } from "@/data/dentists";
 import { toast } from "sonner";
@@ -108,6 +108,12 @@ export default function AdminPage() {
     };
     loadDentists();
   }, []);
+
+  useEffect(() => {
+    if (session?.accessToken) {
+      dispatch(loadBookings(session.accessToken));
+    }
+  }, [session]);
 
   const safeDentists = Array.isArray(dentistsList) ? dentistsList : [];
   const getDentistName = (id: string) =>
@@ -183,7 +189,10 @@ export default function AdminPage() {
 
   const handleDeleteBooking = async () => {
     if (!deletingBookingId) return;
-    await dispatch(deleteBooking(deletingBookingId));
+    await dispatch(deleteBooking({ 
+      bookingId: deletingBookingId, 
+      token: session?.accessToken || "" 
+    }));
     toast.success("Booking deleted");
     setDeletingBookingId(null);
   };
