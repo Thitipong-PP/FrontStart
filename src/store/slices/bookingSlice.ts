@@ -27,6 +27,32 @@ const STORAGE_KEY = 'bookings';
 const saveToStorage = (bookings: Booking[]) =>
   localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
 
+const normalizeUserId = (user: any) => {
+  if (!user) return "";
+  if (typeof user === "string") return user;
+  if (typeof user === "object") return String(user._id ?? user.id ?? "");
+  return "";
+};
+
+const normalizeDentistId = (dentist: any) => {
+  if (!dentist) return "";
+  if (typeof dentist === "string") return dentist;
+  if (typeof dentist === "object") return String(dentist._id ?? dentist.id ?? "");
+  return "";
+};
+
+const normalizeBookingPayload = (b: any) => ({
+  id: String(b._id ?? b.id ?? ""),
+  userId: normalizeUserId(b.user),
+  userName: b.user?.name ?? b.userName ?? "",
+  userEmail: b.user?.email ?? b.userEmail ?? "",
+  dentistId: normalizeDentistId(b.dentist),
+  dentistName: b.dentist?.name ?? b.dentistName ?? "",
+  date: b.bookingDate ?? b.date ?? "",
+  createdAt: b.createdAt ?? "",
+  ...b,
+});
+
 // ── Thunks ────────────────────────────────────────────────────────────────────
 
 export const loadBookings = createAsyncThunk('bookings/load', async (token: string) => {
@@ -34,16 +60,7 @@ export const loadBookings = createAsyncThunk('bookings/load', async (token: stri
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await res.json();
-  return data.data.map((b: any) => ({
-    id: b._id,
-    userId: b.user,
-    userName: b.user.name,
-    userEmail: b.user.email,
-    dentistId: b.dentist.id,
-    date: b.bookingDate,
-    dentistName: b.dentist?.name || "",
-    ...b
-  }));
+  return (data.data || []).map((b: any) => normalizeBookingPayload(b));
 });
 
 export const createBooking = createAsyncThunk(
@@ -67,7 +84,7 @@ export const createBooking = createAsyncThunk(
 
       const data = await res.json();
       if (!res.ok) return rejectWithValue(data.message);
-      return data.data;
+      return normalizeBookingPayload(data.data);
     } catch (err) {
       return rejectWithValue('Network error');
     }
@@ -94,13 +111,7 @@ export const updateBooking = createAsyncThunk(
       });
       const data = await res.json();
       if (!res.ok) return rejectWithValue(data.message);
-      return {
-        id: data.data._id,
-        userId: data.data.user,
-        dentistId: data.data.dentist,
-        date: data.data.bookingDate,
-        ...data.data
-      };
+      return normalizeBookingPayload(data.data);
     } catch (err) {
       return rejectWithValue('Network error');
     }

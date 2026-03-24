@@ -42,7 +42,8 @@ export default function MyBooking() {
 
   const allBookings = useAppSelector(selectAllBookings);
   const allReviews = useAppSelector(selectAllReviews);
-  const booking = allBookings.find((b) => b.userId === user?.id) ?? null;
+  const currentUserId = user?.id ? String(user.id) : "";
+  const booking = allBookings.find((b) => String(b.userId) === currentUserId) ?? null;
 
   const [isEditing, setIsEditing] = useState(false);
   const [editDate, setEditDate] = useState(booking?.date ?? "");

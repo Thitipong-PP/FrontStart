@@ -39,7 +39,8 @@ export default function CreateBookingPage() {
 
   const allBookings = useAppSelector(selectAllBookings);
   const allReviews = useAppSelector(selectAllReviews);
-  const hasExistingBooking = allBookings.some((b) => b.userId === user?.id);
+  const currentUserId = user?.id ? String(user.id) : "";
+  const hasExistingBooking = allBookings.some((b) => String(b.userId) === currentUserId);
 
   useEffect(() => {
     const loadDentists = async () => {
