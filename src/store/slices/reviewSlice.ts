@@ -150,12 +150,17 @@ const reviewSlice = createSlice({
         state.status = "loading";
       })
       .addCase(loadReviews.fulfilled, (state, action) => {
-        state.items = action.payload;
+        // Merge new reviews with existing ones and avoid duplicates by ID.
+        const merged = new Map(state.items.map((item) => [item.id, item]));
+        action.payload.forEach((review) => {
+          merged.set(review.id, review);
+        });
+        state.items = Array.from(merged.values());
         state.status = "succeeded";
       })
       .addCase(loadReviews.rejected, (state) => {
         state.status = "failed";
-        state.items = [];
+        // Keep existing reviews if desired; do not wipe to avoid losing state on partial failure.
       })
       // Add review
       .addCase(addReview.pending, (state) => {

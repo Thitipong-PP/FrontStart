@@ -112,6 +112,10 @@ export default function DentistDetailPage({
 
   const handleSubmitReview = async () => {
     if (!user) return;
+    if (userReview) {
+      toast.error("You can submit only one review per dentist.");
+      return;
+    }
     if (!newComment.trim()) {
       toast.error("Please write a comment");
       return;
@@ -530,6 +534,7 @@ export default function DentistDetailPage({
                     placeholder="Share your experience..."
                     InputLabelProps={{ shrink: true }}
                   />
+                  <div className="my-10" />
                   <MuiButton
                     variant="contained"
                     fullWidth

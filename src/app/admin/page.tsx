@@ -98,15 +98,18 @@ export default function AdminPage() {
   }, [isAdmin, router]);
 
   useEffect(() => {
+    if (!isAdmin) return;
+
     const loadDentists = async () => {
       try {
         const data = await fetchDentists();
         setDentistsList(data);
+
         if (session?.accessToken) {
           await Promise.all(
             data.map((d) =>
-              dispatch(loadReviews({ dentistId: d._id, token: session.accessToken! }))
-            )
+              dispatch(loadReviews({ dentistId: d._id, token: session.accessToken! })),
+            ),
           );
         }
       } catch (error) {
@@ -114,7 +117,7 @@ export default function AdminPage() {
       }
     };
     loadDentists();
-  }, []);
+  }, [session?.accessToken, dispatch, isAdmin]);
 
   useEffect(() => {
     if (!session) return;
