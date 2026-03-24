@@ -464,7 +464,7 @@ export default function DentistDetailPage({
                       size="small"
                       placeholder="Your comment..."
                     />
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 my-10">
                       <MuiButton
                         variant="contained"
                         size="small"
@@ -721,7 +721,7 @@ export default function DentistDetailPage({
                                     }
                                     size="small"
                                   />
-                                  <div className="flex gap-2">
+                                  <div className="flex gap-2 my-10">
                                     <MuiButton
                                       variant="contained"
                                       size="small"
