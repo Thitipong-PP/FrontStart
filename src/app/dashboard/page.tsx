@@ -14,8 +14,8 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useAppSelector } from "@/store";
-import { selectAllReviews } from "@/store/slices/reviewSlice";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { selectAllReviews, loadReviews } from "@/store/slices/reviewSlice";
 import { fetchDentists, type Dentist } from "@/data/dentists";
 
 const expertiseColors: Record<
@@ -61,11 +61,23 @@ export default function DashboardPage() {
   const [dentistsList, setDentistsList] = useState<Dentist[]>([]);
   const [loadingDentists, setLoadingDentists] = useState(true);
 
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
     const loadDentists = async () => {
       try {
         const data = await fetchDentists();
         setDentistsList(data);
+
+        if (session?.accessToken) {
+          await Promise.all(
+            data.map((d) =>
+              dispatch(
+                loadReviews({ dentistId: d._id, token: session.accessToken! }),
+              ),
+            ),
+          );
+        }
       } catch (error) {
         console.error('Failed to load dentists:', error);
       } finally {
@@ -73,7 +85,7 @@ export default function DashboardPage() {
       }
     };
     loadDentists();
-  }, []);
+  }, [session?.accessToken, dispatch]);
 
   const getAvgRating = (dentistId: string) => {
     const r = allReviews.filter((rv) => rv.dentistId === dentistId);

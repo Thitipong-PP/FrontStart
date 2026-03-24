@@ -30,6 +30,7 @@ import {
   updateReview,
   deleteReview,
   selectAllReviews,
+  loadReviews,
 } from "@/store/slices/reviewSlice";
 import { Dentist, fetchDentist } from "@/data/dentists";
 import { toast } from "sonner";
@@ -83,6 +84,12 @@ export default function DentistDetailPage({
     }
   }, [dentistId]);
 
+  useEffect(() => {
+  if (dentistId && session?.accessToken) {
+    dispatch(loadReviews({ dentistId, token: session.accessToken }));
+  }
+}, [dentistId, session]);
+
   // New review form state
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState("");
@@ -105,6 +112,10 @@ export default function DentistDetailPage({
 
   const handleSubmitReview = async () => {
     if (!user) return;
+    if (userReview) {
+      toast.error("You can submit only one review per dentist.");
+      return;
+    }
     if (!newComment.trim()) {
       toast.error("Please write a comment");
       return;
@@ -117,6 +128,7 @@ export default function DentistDetailPage({
         userName: user.name,
         rating: newRating,
         comment: newComment.trim(),
+        token: session?.accessToken || "",
       }),
     );
     setIsSubmitting(false);
@@ -141,6 +153,7 @@ export default function DentistDetailPage({
         reviewId: editingId!,
         rating: editRating,
         comment: editComment.trim(),
+        token: session?.accessToken || "",
       }),
     );
     if (updateReview.fulfilled.match(result)) {
@@ -153,7 +166,10 @@ export default function DentistDetailPage({
 
   const handleDelete = async () => {
     if (!deletingId) return;
-    const result = await dispatch(deleteReview(deletingId));
+    const result = await dispatch(deleteReview({ 
+      reviewId: deletingId, 
+      token: session?.accessToken || "" 
+    }));
     if (deleteReview.fulfilled.match(result)) {
       toast.success("Review deleted");
       setDeletingId(null);
@@ -518,6 +534,7 @@ export default function DentistDetailPage({
                     placeholder="Share your experience..."
                     InputLabelProps={{ shrink: true }}
                   />
+                  <div className="my-10" />
                   <MuiButton
                     variant="contained"
                     fullWidth

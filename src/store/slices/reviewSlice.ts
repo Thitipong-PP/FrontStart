@@ -28,72 +28,113 @@ const saveToStorage = (reviews: Review[]) =>
 
 // ── Thunks ────────────────────────────────────────────────────────────────────
 
-export const loadReviews = createAsyncThunk("reviews/load", async () => {
-  return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]") as Review[];
-});
+export const loadReviews = createAsyncThunk(
+  "reviews/load",
+  async (payload: { dentistId: string; token: string }) => {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/dentist/${payload.dentistId}/reviews`,
+      { headers: { Authorization: `Bearer ${payload.token}` } }
+    );
+    const data = await res.json();
+    return data.data.map((r: any) => ({
+      id: r._id,
+      dentistId: r.dentist?._id || r.dentist,
+      userId: r.user?._id || r.user,
+      userName: r.user?.name || "",
+      rating: r.rating,
+      comment: r.comment,
+      createdAt: r.createdAt,
+    }));
+  }
+);
 
 export const addReview = createAsyncThunk(
   "reviews/add",
   async (
-    payload: {
-      dentistId: string;
-      userId: string;
-      userName: string;
-      rating: number;
-      comment: string;
-    },
-    { getState, rejectWithValue },
+    payload: { dentistId: string; userId: string; userName: string; rating: number; comment: string; token: string },
+    { rejectWithValue }
   ) => {
-    const state = getState() as { reviews: ReviewState };
-    const duplicate = state.reviews.items.find(
-      (r) => r.userId === payload.userId && r.dentistId === payload.dentistId,
-    );
-    if (duplicate) return rejectWithValue("Already reviewed this dentist");
-
-    const review: Review = {
-      id: Date.now().toString(),
-      ...payload,
-      createdAt: new Date().toISOString(),
-    };
-    const updated = [...state.reviews.items, review];
-    saveToStorage(updated);
-    return review;
-  },
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/dentist/${payload.dentistId}/reviews`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${payload.token}`,
+          },
+          body: JSON.stringify({ rating: payload.rating, comment: payload.comment }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) return rejectWithValue(data.message);
+      return {
+        id: data.data._id,
+        dentistId: payload.dentistId,
+        userId: payload.userId,
+        userName: payload.userName,
+        rating: payload.rating,
+        comment: payload.comment,
+        createdAt: data.data.createdAt,
+      };
+    } catch {
+      return rejectWithValue("Network error");
+    }
+  }
 );
 
 export const updateReview = createAsyncThunk(
   "reviews/update",
   async (
-    payload: { reviewId: string; rating: number; comment: string },
-    { getState, rejectWithValue },
+    payload: { reviewId: string; rating: number; comment: string; token: string },
+    { rejectWithValue }
   ) => {
-    const state = getState() as { reviews: ReviewState };
-    const review = state.reviews.items.find((r) => r.id === payload.reviewId);
-    if (!review) return rejectWithValue("Review not found");
-
-    const updated: Review = {
-      ...review,
-      rating: payload.rating,
-      comment: payload.comment,
-      updatedAt: new Date().toISOString(),
-    };
-
-    const allUpdated = state.reviews.items.map((r) =>
-      r.id === payload.reviewId ? updated : r,
-    );
-    saveToStorage(allUpdated);
-    return updated;
-  },
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/reviews/${payload.reviewId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${payload.token}`,
+          },
+          body: JSON.stringify({ rating: payload.rating, comment: payload.comment }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) return rejectWithValue(data.message);
+      return {
+        id: data.data._id,
+        rating: data.data.rating,
+        comment: data.data.comment,
+        updatedAt: new Date().toISOString()
+      };
+    } catch {
+      return rejectWithValue("Network error");
+    }
+  }
 );
 
 export const deleteReview = createAsyncThunk(
   "reviews/delete",
-  async (reviewId: string, { getState }) => {
-    const state = getState() as { reviews: ReviewState };
-    const updated = state.reviews.items.filter((r) => r.id !== reviewId);
-    saveToStorage(updated);
-    return reviewId;
-  },
+  async (payload: { reviewId: string; token: string }, { rejectWithValue }) => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/reviews/${payload.reviewId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${payload.token}` },
+        }
+      );
+      if (!res.ok) {
+        const data = await res.json();
+        return rejectWithValue(data.message);
+      }
+      return payload.reviewId;
+    } catch {
+      return rejectWithValue("Network error");
+    }
+  }
 );
 
 // ── Slice ─────────────────────────────────────────────────────────────────────
@@ -109,12 +150,17 @@ const reviewSlice = createSlice({
         state.status = "loading";
       })
       .addCase(loadReviews.fulfilled, (state, action) => {
-        state.items = action.payload;
+        // Merge new reviews with existing ones and avoid duplicates by ID.
+        const merged = new Map(state.items.map((item) => [item.id, item]));
+        action.payload.forEach((review) => {
+          merged.set(review.id, review);
+        });
+        state.items = Array.from(merged.values());
         state.status = "succeeded";
       })
       .addCase(loadReviews.rejected, (state) => {
         state.status = "failed";
-        state.items = [];
+        // Keep existing reviews if desired; do not wipe to avoid losing state on partial failure.
       })
       // Add review
       .addCase(addReview.pending, (state) => {
@@ -133,7 +179,10 @@ const reviewSlice = createSlice({
       })
       .addCase(updateReview.fulfilled, (state, action) => {
         const idx = state.items.findIndex((r) => r.id === action.payload.id);
-        if (idx !== -1) state.items[idx] = action.payload;
+        if (idx !== -1) state.items[idx] = { 
+          ...state.items[idx],
+          ...action.payload
+        };
         state.status = "succeeded";
       })
       .addCase(updateReview.rejected, (state) => {
