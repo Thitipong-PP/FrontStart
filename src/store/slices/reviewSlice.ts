@@ -152,7 +152,7 @@ const reviewSlice = createSlice({
       .addCase(loadReviews.fulfilled, (state, action) => {
         // Merge new reviews with existing ones and avoid duplicates by ID.
         const merged = new Map(state.items.map((item) => [item.id, item]));
-        action.payload.forEach((review) => {
+        action.payload.forEach((review: Review) => {
           merged.set(review.id, review);
         });
         state.items = Array.from(merged.values());
