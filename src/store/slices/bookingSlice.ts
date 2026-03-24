@@ -41,6 +41,14 @@ const normalizeDentistId = (dentist: any) => {
   return "";
 };
 
+const toISODate = (dateValue: any) => {
+  if (!dateValue) return "";
+  const normalized = typeof dateValue === "string" ? dateValue.trim() : String(dateValue);
+  const d = new Date(normalized);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toISOString();
+};
+
 const normalizeBookingPayload = (b: any) => ({
   id: String(b._id ?? b.id ?? ""),
   userId: normalizeUserId(b.user),
@@ -48,7 +56,7 @@ const normalizeBookingPayload = (b: any) => ({
   userEmail: b.user?.email ?? b.userEmail ?? "",
   dentistId: normalizeDentistId(b.dentist),
   dentistName: b.dentist?.name ?? b.dentistName ?? "",
-  date: b.bookingDate ?? b.date ?? "",
+  date: toISODate(b.bookingDate ?? b.date ?? ""),
   createdAt: b.createdAt ?? "",
   ...b,
 });

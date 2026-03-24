@@ -355,7 +355,8 @@ export default function MyBooking() {
                 variant="outlined"
                 startIcon={<Edit size={16} />}
                 onClick={() => {
-                  setEditDate(booking.date);
+                  const bookingDate = booking.date ? booking.date.split('T')[0] : '';
+                  setEditDate(bookingDate);
                   setEditDentistId(booking.dentistId);
                   setIsEditing(true);
                 }}
