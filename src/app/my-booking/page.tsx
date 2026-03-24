@@ -28,6 +28,7 @@ import {
   updateBooking,
   deleteBooking,
   selectAllBookings,
+  loadBookings,
 } from "@/store/slices/bookingSlice";
 import { selectAllReviews } from "@/store/slices/reviewSlice";
 import { fetchDentists, type Dentist } from "@/data/dentists";
@@ -65,6 +66,12 @@ export default function MyBooking() {
     loadDentists();
   }, []);
 
+  useEffect(() => {
+  if (session?.accessToken) {
+    dispatch(loadBookings(session.accessToken));
+  }
+  }, [session]);
+
   const safeDentists = Array.isArray(dentistsList) ? dentistsList : [];
   const dentist = booking
     ? safeDentists.find((d) => d._id === booking.dentistId)
@@ -97,6 +104,7 @@ export default function MyBooking() {
         bookingId: booking!.id,
         dentistId: editDentistId,
         date: editDate,
+        token: session?.accessToken || "",
       }),
     );
     if (updateBooking.fulfilled.match(result)) {
@@ -106,7 +114,10 @@ export default function MyBooking() {
   };
 
   const handleDelete = async () => {
-    await dispatch(deleteBooking(booking!.id));
+    await dispatch(deleteBooking({
+      bookingId: booking!.id,
+      token: session?.accessToken || "",
+    }));
     toast.success("Booking cancelled successfully");
     router.push("/dashboard");
   };

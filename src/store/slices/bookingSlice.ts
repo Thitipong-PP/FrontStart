@@ -29,67 +29,97 @@ const saveToStorage = (bookings: Booking[]) =>
 
 // ── Thunks ────────────────────────────────────────────────────────────────────
 
-export const loadBookings = createAsyncThunk('bookings/load', async () => {
-  return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as Booking[];
+export const loadBookings = createAsyncThunk('bookings/load', async (token: string) => {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json();
+  return data.data.map((b: any) => ({
+    id: b._id,
+    userId: b.user,
+    dentistId: b.dentist.id,
+    date: b.bookingDate,
+    ...b
+  }));
 });
 
 export const createBooking = createAsyncThunk(
   'bookings/create',
   async (
-    payload: { userId: string; userName: string; userEmail: string; dentistId: string; date: string },
-    { getState, rejectWithValue }
+    payload: { dentistId: string; date: string; token: string },
+    { rejectWithValue }
   ) => {
-    const state = getState() as { bookings: BookingState };
-    if (state.bookings.items.some((b) => b.userId === payload.userId)) {
-      return rejectWithValue('You already have an active booking');
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${payload.token}`,
+        },
+        body: JSON.stringify({
+          bookingDate: payload.date,
+          dentist: payload.dentistId,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) return rejectWithValue(data.message);
+      return data.data;
+    } catch (err) {
+      return rejectWithValue('Network error');
     }
-    const dentist = await fetchDentist(payload.dentistId);
-    if (!dentist) {
-      return rejectWithValue('Dentist not found');
-    }
-    const booking: Booking = {
-      id: Date.now().toString(),
-      ...payload,
-      dentistName: dentist.name,
-      createdAt: new Date().toISOString(),
-    };
-    const updated = [...state.bookings.items, booking];
-    saveToStorage(updated);
-    return booking;
   }
 );
 
 export const updateBooking = createAsyncThunk(
   'bookings/update',
   async (
-    payload: { bookingId: string; dentistId: string; date: string },
-    { getState, rejectWithValue }
+    payload: { bookingId: string; dentistId: string; date: string; token: string },
+    { rejectWithValue }
   ) => {
-    const state = getState() as { bookings: BookingState };
-    const idx = state.bookings.items.findIndex((b) => b.id === payload.bookingId);
-    if (idx === -1) return rejectWithValue('Booking not found');
-
-    const dentist = await fetchDentist(payload.dentistId);
-    if (!dentist) {
-      return rejectWithValue('Dentist not found');
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${payload.bookingId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${payload.token}`,
+        },
+        body: JSON.stringify({
+          bookingDate: payload.date,
+          dentist: payload.dentistId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return rejectWithValue(data.message);
+      return {
+        id: data.data._id,
+        userId: data.data.user,
+        dentistId: data.data.dentist,
+        date: data.data.bookingDate,
+        ...data.data
+      };
+    } catch (err) {
+      return rejectWithValue('Network error');
     }
-    const updated = state.bookings.items.map((b) =>
-      b.id === payload.bookingId
-        ? { ...b, dentistId: payload.dentistId, dentistName: dentist.name, date: payload.date }
-        : b
-    );
-    saveToStorage(updated);
-    return updated[idx];
   }
 );
 
 export const deleteBooking = createAsyncThunk(
   'bookings/delete',
-  async (bookingId: string, { getState }) => {
-    const state = getState() as { bookings: BookingState };
-    const updated = state.bookings.items.filter((b) => b.id !== bookingId);
-    saveToStorage(updated);
-    return bookingId;
+  async (payload: { bookingId: string; token: string }, { rejectWithValue }) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${payload.bookingId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${payload.token}` },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        return rejectWithValue(data.message);
+      }
+      return payload.bookingId;
+    } catch (err) {
+      return rejectWithValue('Network error');
+    }
   }
 );
 

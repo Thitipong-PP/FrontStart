@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { createBooking, selectAllBookings } from "@/store/slices/bookingSlice";
+import { createBooking, loadBookings, selectAllBookings } from "@/store/slices/bookingSlice";
 import { selectAllReviews } from "@/store/slices/reviewSlice";
 import { fetchDentists, type Dentist } from "@/data/dentists";
 import { toast } from "sonner";
@@ -56,6 +56,12 @@ export default function CreateBookingPage() {
     loadDentists();
   }, []);
 
+  useEffect(() => {
+    if (session?.accessToken) {
+      dispatch(loadBookings(session.accessToken));
+    }
+  }, [session]);
+
   const safeDentists = Array.isArray(dentistsList) ? dentistsList : [];
   const selectedDentist = safeDentists.find((d) => d._id === selectedDentistId);
 
@@ -89,11 +95,9 @@ export default function CreateBookingPage() {
 
     const result = await dispatch(
       createBooking({
-        userId: user?.id || "",
-        userName: user?.name || "",
-        userEmail: user?.email || "",
         dentistId: selectedDentistId,
         date,
+        token: session?.accessToken || "",
       }),
     );
 
