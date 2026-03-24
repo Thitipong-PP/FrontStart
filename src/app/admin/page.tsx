@@ -37,7 +37,7 @@ import {
 import { useSession } from "next-auth/react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { deleteBooking, loadBookings, selectAllBookings } from "@/store/slices/bookingSlice";
-import { deleteReview, selectAllReviews } from "@/store/slices/reviewSlice";
+import { deleteReview, loadReviews, selectAllReviews } from "@/store/slices/reviewSlice";
 import { fetchDentists, type Dentist } from "@/data/dentists";
 import { toast } from "sonner";
 
@@ -102,6 +102,13 @@ export default function AdminPage() {
       try {
         const data = await fetchDentists();
         setDentistsList(data);
+        if (session?.accessToken) {
+          await Promise.all(
+            data.map((d) =>
+              dispatch(loadReviews({ dentistId: d._id, token: session.accessToken! }))
+            )
+          );
+        }
       } catch (error) {
         console.error('Failed to load dentists:', error);
       }
@@ -110,9 +117,12 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    if (session?.accessToken) {
-      dispatch(loadBookings(session.accessToken));
+    if (!session) return;
+    if (!isAdmin) {
+      router.push("/login");
+      return;
     }
+    dispatch(loadBookings(session.accessToken!));
   }, [session]);
 
   const safeDentists = Array.isArray(dentistsList) ? dentistsList : [];
@@ -199,10 +209,15 @@ export default function AdminPage() {
 
   const handleDeleteReview = async () => {
     if (!deletingReviewId) return;
-    await dispatch(deleteReview(deletingReviewId));
+    await dispatch(deleteReview({ 
+      reviewId: deletingReviewId, 
+      token: session?.accessToken || "" 
+    }));
     toast.success("Review deleted");
     setDeletingReviewId(null);
   };
+
+  console.log(session?.accessToken)
 
   return (
     <div className="min-h-screen bg-slate-50">

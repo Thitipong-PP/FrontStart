@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { fetchDentist } from '../../data/dentists';
+import { RootState } from '..';
 
 export interface Booking {
   id: string;
@@ -173,9 +174,9 @@ const bookingSlice = createSlice({
 export default bookingSlice.reducer;
 
 // Selectors
-export const selectAllBookings = (state: { bookings: BookingState }) =>
+export const selectAllBookings = (state: RootState) =>
   state.bookings.items;
 
 export const selectUserBooking = (userId: string) =>
-  (state: { bookings: BookingState }) =>
+  (state: RootState) =>
     state.bookings.items.find((b) => b.userId === userId) ?? null;
