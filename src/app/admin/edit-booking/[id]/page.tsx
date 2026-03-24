@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { selectAllBookings, updateBooking } from "@/store/slices/bookingSlice";
+import { loadBookings, selectAllBookings, updateBooking } from "@/store/slices/bookingSlice";
 import { fetchDentists, type Dentist } from "@/data/dentists";
 import MuiButton from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
@@ -65,6 +65,12 @@ export default function EditBookingPage() {
   }, []);
 
   useEffect(() => {
+    if (session?.accessToken) {
+      dispatch(loadBookings(session.accessToken));
+    }
+  }, [session]);
+
+  useEffect(() => {
     if (booking) {
       setFormData({
         date: formatDateForInput(booking.date),
@@ -87,8 +93,10 @@ export default function EditBookingPage() {
           bookingId: bookingId,
           dentistId: formData.dentistId,
           date: formData.date,
+          token: session?.accessToken || "",
         }),
       );
+      await dispatch(loadBookings(session?.accessToken || ""));
       toast.success("Booking updated successfully");
       router.push("/admin");
     } catch (error) {

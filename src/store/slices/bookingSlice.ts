@@ -37,8 +37,11 @@ export const loadBookings = createAsyncThunk('bookings/load', async (token: stri
   return data.data.map((b: any) => ({
     id: b._id,
     userId: b.user,
+    userName: b.user.name,
+    userEmail: b.user.email,
     dentistId: b.dentist.id,
     date: b.bookingDate,
+    dentistName: b.dentist?.name || "",
     ...b
   }));
 });
